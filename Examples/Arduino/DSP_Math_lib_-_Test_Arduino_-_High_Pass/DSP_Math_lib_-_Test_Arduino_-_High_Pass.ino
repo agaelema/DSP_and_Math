@@ -8,7 +8,7 @@
  *  - https://hackaday.io/project/5334-serialplot-realtime-plotting-software
  *
  *  Author: Haroldo Amaral - agaelema@gmail.com
- *  2017/09/04
+ *  2017/09/19
  ******************************************************************************/
 #include "DSP_and_Math.h"
 
@@ -18,7 +18,7 @@
 #define   SEPARATOR     (' ')       // used to separate plotted values - Arduino Serial plotter
 //#define   SEPARATOR     (',')       // used to separate plotted values - Other Serial plotter
 
-#define     PI                  3.1415926535897932384676
+#define     PI                  3.141592653589793f
 
 /******************************************************************************
  * Define parameters of simulated wave
@@ -29,14 +29,18 @@
 
 #define     SHIFT    15           // how many shifts in fixed version
 
-float a = 0;
 float sample_original = 0;
 int32_t sample_original_int = 0;
 
 volatile float sample_no_DC = 0;
 
-float increment = (2*PI)/WAVE_POINTS;
 uint16_t counter = 0;
+
+/******************************************************************************
+ *  Initialize structures to waveform
+ ******************************************************************************/
+sine_wave_parameters sine1th = {0};
+sine_wave_parameters sine8th = {0};
 
 /******************************************************************************
  *  Initialize structures to save filter parameters
@@ -46,9 +50,15 @@ iirHighPassFixed_t voltage_dcFilter_fixed_01;
 iirHighPassFixedExtended_t voltage_dcFilter_fixed_extended;
 
 void setup() {
-  Serial.begin(9600);
-  
-  /*************************************
+    Serial.begin(9600);
+
+    /**************************************************
+     *  Create and initialize wave struct parameters
+     **************************************************/
+    sineWaveGen_bySample_Init(&sine1th, 1.0f, 0, WAVE_AMPLITUDE, WAVE_DC_LEVEL, WAVE_POINTS, WAVEGEN_CLEAN);
+    sineWaveGen_bySample_Init(&sine8th, 8.0f, 0, WAVE_AMPLITUDE/16, 0, WAVE_POINTS, WAVEGEN_CLEAN);
+
+    /*************************************
      * Initialize structs - High pass
      *************************************/
     iir_SinglePoleHighPass_Float_Init(&voltage_dcFilter_float, 0.004f, IIR_FILTER_DO_CLEAN);
@@ -58,45 +68,38 @@ void setup() {
 
 void loop()
 {
-  if(counter < WAVE_POINTS)
-        {
-            /*************************************
-             * Generate a test signal - sine wave
-             *************************************/
-            sample_original = WAVE_DC_LEVEL + sinf(a) * WAVE_AMPLITUDE;
-//        sample_original = WAVE_DC_LEVEL + (sinf(a) * WAVE_AMPLITUDE) + (sinf(8*a) * (WAVE_AMPLITUDE/8));
-            Serial.print(sample_original);          // print original wave
-            a += increment;
-            
-            sample_original_int = (int32_t)sample_original;     // cast value to integer
+    /*************************************
+     * Generate a test signal - sine wave
+     *************************************/
+    /* fundamental sine wave */
+    sample_original = sineWaveGen_GetSample(&sine1th);
+    /* 8th harmonic sine wave - sum with original wave */
+    sample_original += sineWaveGen_GetSample(&sine8th);
 
-            /* sample without DC */
-            sample_no_DC = sample_original - WAVE_DC_LEVEL;
+    Serial.print(sample_original);          // print original wave
 
-            /* draw original wave without DC level */
-            Serial.print(SEPARATOR);    Serial.print(sample_no_DC);
+    sample_original_int = (int32_t)sample_original;     // cast value to integer
+
+    /* sample without DC */
+    sample_no_DC = sample_original - WAVE_DC_LEVEL;
+
+    /* draw original wave without DC level */
+    Serial.print(SEPARATOR);    Serial.print(sample_no_DC);
 
 
 
-            /************************************************
-             * do the filtering - High Pass Filters
-             ************************************************/
-            iir_SinglePoleHighPass_Float(&voltage_dcFilter_float, sample_original);
-            Serial.print(SEPARATOR);    Serial.print(voltage_dcFilter_float.y);
+    /************************************************
+     * do the filtering - High Pass Filters
+     ************************************************/
+    iir_SinglePoleHighPass_Float(&voltage_dcFilter_float, sample_original);
+    Serial.print(SEPARATOR);    Serial.print(voltage_dcFilter_float.y);
 
-            iir_SinglePoleHighPass_Fixed(&voltage_dcFilter_fixed_01, sample_original_int);
-            Serial.print(SEPARATOR);    Serial.print(voltage_dcFilter_fixed_01.y);
+    iir_SinglePoleHighPass_Fixed(&voltage_dcFilter_fixed_01, sample_original_int);
+    Serial.print(SEPARATOR);    Serial.print(voltage_dcFilter_fixed_01.y);
 
-            iir_SinglePoleHighPass_FixedExtended(&voltage_dcFilter_fixed_extended, sample_original_int);
-            Serial.print(SEPARATOR);    Serial.print(voltage_dcFilter_fixed_extended.y);
+    iir_SinglePoleHighPass_FixedExtended(&voltage_dcFilter_fixed_extended, sample_original_int);
+    Serial.print(SEPARATOR);    Serial.print(voltage_dcFilter_fixed_extended.y);
 
-            /* end of line */
-            Serial.print('\r');   Serial.println();
-
-            counter++;
-        }
-        else        /* after the last point reset variables */
-        {
-            counter = 0;                            // reset counter
-        }
+    /* end of line */
+    Serial.print('\r');   Serial.println();
 }

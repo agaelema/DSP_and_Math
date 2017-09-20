@@ -4,7 +4,7 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.2 - 2017/08/31
+ *  v0.4 - 2017/09/18
  ******************************************************************************
  *  log:
  *    v0.1  . Initial version
@@ -15,6 +15,17 @@
  *    v0.2  . rename dc filter to iir_hipassfilter
  *          . rename associated structures
  *          + add iir low pass filter and structures
+ *    v0.3  . change name of rms functions
+ *          + add new rms functions
+ *          + add sqrt_Int32 and sqrt_Int64 (integer versions)
+ *    v0.4  . change volatile variables
+ *          . optimize sqrt_Int32 by defines
+ *          . change rms_valueadd input parameter (pass the value instead of pointer)
+ *          - remove sqrt_Int64 - not efficient
+ *          - remove rms int32 functions - not efficient
+ *          + add sine wave gen function
+ *          + add rmsClearStruct to function sample by sample
+ *          + add Goertzel functions (array and sample-by-sample)
  ******************************************************************************/
 
 #include    "DSP_and_Math.h"
@@ -25,7 +36,55 @@
  ******************************************************************************/
 
 /******************************************************************************
- *  Calculate the RMS value of N sample of an array
+ *  Calculate the Square root of a 32 bit signed number
+ *  - will return "-1" if the number is negative
+ *
+ *  - INPUT:    int32_t x           (32 bit signed input number)
+ *
+ *  - RETURN:   root                (integer square root of x)
+ *
+ * Reference: http://www.codecodex.com/wiki/Calculate_an_integer_square_root
+ ******************************************************************************/
+int32_t sqrt_Int32(int32_t x)
+{
+    register uint32_t root, remainder, place;
+
+    /* verify if number is negative */
+    if (x < 0)
+    {
+        return (-1);        // return "-1" - error
+    }
+    /* verify if number is zero */
+    if (x == 0)
+    {
+        return (0);
+    }
+
+    root = 0;
+    remainder = x;
+    place = 0x40000000;         // to 32 bit input
+
+    while (place > remainder)
+        place = place >> 2;
+    while (place)
+    {
+        if (remainder >= root + place)
+        {
+            remainder = remainder - root - place;
+            root = root + (place << 1);
+        }
+        root = root >> 1;
+        place = place >> 2;
+    }
+    return root;
+}
+
+
+
+
+/******************************************************************************
+ *  Calculate the RMS value of N sample of a float array
+ *  - use float variables to accumulate and return the result in float
  *
  *  - INPUT:    const float * arrayIn   (pointer to array with the samples)
  *              uint_fast16_t size      (number of samples - limited to 65535)
@@ -33,10 +92,10 @@
  *
  *  - RETURN:   calculated RMS value (float)
  ******************************************************************************/
-float rmsValueArray_StdMath(const float * arrayIn, uint_fast16_t size, float dcLevel)
+float rmsValueArray_Float_StdMath(const float * arrayIn, uint_fast16_t size, float dcLevel)
 {
-    volatile uint_fast16_t counter = size;
-    volatile float sample_temp;
+    uint_fast16_t counter;
+    float sample_temp;
     float acc = 0;
 
     /* check if there is a dc leve (different of zero) */
@@ -66,6 +125,111 @@ float rmsValueArray_StdMath(const float * arrayIn, uint_fast16_t size, float dcL
 }
 
 
+/******************************************************************************
+ *  Calculate the RMS value of N sample of a int16_t array
+ *  - use integer (32 bits) variables to accumulate and return the result in float
+ *  - limitations about the input limit during math stage
+ *
+ *  - INPUT:    const float * arrayIn   (pointer to array with the samples)
+ *              uint_fast16_t size      (number of samples - limited to 65535)
+ *              float dcLevel           (previously calculated dc level)
+ *
+ *  - RETURN:   calculated RMS value (float)
+ ******************************************************************************/
+float rmsValueArray_Int16_StdMath(const int16_t * arrayIn, uint_fast16_t size, int16_t dcLevel)
+{
+    uint_fast16_t counter;
+    int32_t sample_temp;
+    uint32_t acc = 0;
+
+    /* check if there is a dc leve (different of zero) */
+    if (dcLevel)
+    {
+        for (counter = 0; counter < size; counter++)
+            {
+            sample_temp = (int32_t)(arrayIn[counter] - dcLevel);        // subtraction of dc level before square
+            acc = acc + (uint32_t)(sample_temp * sample_temp);          // square and accumulate
+            }
+    }
+    /* if dc level is zero, the subtraction can be removed */
+    else
+    {
+        for (counter = 0; counter < size; counter++)
+            {
+                sample_temp = (int32_t)arrayIn[counter];                // save the sample
+                acc = acc + (uint32_t)(sample_temp * sample_temp);      // square and accumulate
+            }
+    }
+
+    /*
+     * calculate the average and then extract square root - RMS value
+     */
+#if defined (RMS_ARRAY_STD)
+    /************************************************************
+     * version using std math.h square root function
+     ************************************************************/
+    float result;
+    result = (float)acc/size;
+    return sqrtf(result);
+
+#elif   defined(RMS_ARRAY_OPTIMIZED)
+    /************************************************************
+     * version using integer square root function
+     ************************************************************/
+    uint32_t result;
+    result = acc/size;
+
+    /************************************************************
+     * To reach better accuracy, shift the result when possible
+     * - transform in a fixed point math
+     ************************************************************/
+    if (result & (3UL << 30))   // verify if bit 30 and 31 is true
+    {
+        result = sqrt_Int32(result);    // if yes, do the sqrt
+        return (float)(result);
+    }
+    else if (result & (3UL << 28))  // verify bits 28 and 29
+    {
+        result = sqrt_Int32((result) << 1); // rotate 1x to left == multiply by 2
+        return (float)(result/1.414213f);   // divide the result by sqrt of 2
+    }
+    else if (result & (15UL << 24)) // verify bits between 24 and 27
+    {
+        result = sqrt_Int32((result) << 3); // rotate 3x to left == multiply by 2
+        return (float)(result/2.828427f);   // divide the result by sqrt of 8
+    }
+    else if (result & (15UL << 20))
+    {
+        result = sqrt_Int32((result) << 7);
+        return (float)(result/11.313708f);
+    }
+    else if (result & (15UL << 16))
+    {
+        result = sqrt_Int32((result) << 11);
+        return (float)(result/45.254834f);
+    }
+    else if (result & (15UL << 12))
+    {
+        result = sqrt_Int32((result) << 15);
+        return (float)(result/181.019336f);
+    }
+    else if (result & (15UL << 8))
+    {
+        result = sqrt_Int32((result) << 19);
+        return (float)(result/724.077343f);
+    }
+    else
+    {
+        result = sqrt_Int32((result) << 23);
+        return (float)(result/2896.309376f);
+    }
+
+#else
+#error      "RMS Array Int16 - invalid option, select one define!"
+#endif
+}
+
+
 
 
 /******************************************************************************
@@ -78,12 +242,68 @@ float rmsValueArray_StdMath(const float * arrayIn, uint_fast16_t size, float dcL
  *
  *  - RETURN:   N/A (result returned inside the struct)
  ******************************************************************************/
-void rmsValueAddSample(rms_float_t * inputStruct, const float * sampleFloat)
+//void rmsValueAddSample_Float(rms_float_t * inputStruct, const float * sample)
+void rmsValueAddSample_Float(rms_float_t * inputStruct, float sample)
 {
     /* square value and accumulate */
-    inputStruct->acc += ((*sampleFloat) * (*sampleFloat));
+    inputStruct->acc += (sample * sample);
     /* increment counter - used in final step */
     inputStruct->size_counter++;
+}
+
+
+/******************************************************************************
+ *  Add sample to accumulator - Allow to calculate RMS value sample by sample
+ *  - square input values and accumulate
+ *  - Finalizing calculations in a separate function
+ *
+ *  - INPUT:    rms_int16_t * inputStruct       (pointer to struct with RMS parameters)
+ *              const float * sampleFloat       (pointer to float sample)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+//void rmsValueAddSample_Int16(rms_int16_t * inputStruct, const int16_t * sample)
+void rmsValueAddSample_Int16(rms_int16_t * inputStruct, int16_t sample)
+{
+    int32_t sample_temp;
+    sample_temp = (int32_t)sample;                 // save the sample
+
+    /* square value and accumulate */
+    inputStruct->acc = inputStruct->acc + (uint32_t)(sample_temp * sample_temp);             // square and accumulate
+    /* increment counter - used in final step */
+    inputStruct->size_counter++;
+}
+
+
+/******************************************************************************
+ *  Clear RMS Float Struct - reset all parameters (variables)
+ *  - enable to clear some rms calculation without do the math
+ *
+ *  - INPUT:    rms_float_t * inputStruct       (pointer to struct with RMS parameters)
+ *
+ *  - RETURN:   N/A
+ ******************************************************************************/
+void rmsClearStruct_Float(rms_float_t * inputStruct)
+{
+    inputStruct->acc = 0;
+    inputStruct->rmsValue = 0;
+    inputStruct->size_counter = 0;
+}
+
+
+/******************************************************************************
+ *  Clear RMS Int16 Struct - reset all parameters (variables)
+ *  - enable to clear some rms calculation without do the math
+ *
+ *  - INPUT:    rms_int16_t * inputStruct       (pointer to struct with RMS parameters)
+ *
+ *  - RETURN:   N/A
+ ******************************************************************************/
+void rmsClearStruct_Int16(rms_int16_t * inputStruct)
+{
+    inputStruct->acc = 0;
+    inputStruct->rmsValue = 0;
+    inputStruct->size_counter = 0;
 }
 
 
@@ -95,7 +315,7 @@ void rmsValueAddSample(rms_float_t * inputStruct, const float * sampleFloat)
  *
  *  - RETURN:   N/A (result returned inside the struct)
  ******************************************************************************/
-void rmsValueCalcRmsStdMath(rms_float_t * inputStruct)
+void rmsValueCalcRmsStdMath_Float(rms_float_t * inputStruct)
 {
     /*
      * Finalize the math
@@ -105,6 +325,172 @@ void rmsValueCalcRmsStdMath(rms_float_t * inputStruct)
     inputStruct->rmsValue = sqrtf(inputStruct->rmsValue);
     inputStruct->acc = 0;                   // clear accumulator
     inputStruct->size_counter = 0;          // clear counter
+}
+
+
+/******************************************************************************
+ *  Finalize RMS calculation based in previously added samples
+ *  - calculate the average and root square
+ *
+ *  - INPUT:    rms_float_t * inputStruct       (pointer to struct with RMS parameters)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void rmsValueCalcRmsStdMath_Int16(rms_int16_t * inputStruct)
+{
+
+    /*
+     * Finalize the math
+     * - calculate the average and then extract square root - RMS value
+     */
+#if defined (RMS_SAMPLE_STD)
+    volatile float result;
+    result = (float)inputStruct->acc / inputStruct->size_counter;
+    inputStruct->rmsValue = sqrtf(result);
+    inputStruct->acc = 0;                   // clear accumulator
+    inputStruct->size_counter = 0;          // clear counter
+
+#elif   defined(RMS_SAMPLE_OPTIMIZED)
+    uint32_t result;
+    result = inputStruct->acc/inputStruct->size_counter;
+
+    if (result & (3UL << 30))
+    {
+        result = sqrt_Int32(result);
+        inputStruct->rmsValue = result;
+    }
+    else if (result & (3UL << 28))
+    {
+        result = sqrt_Int32((result) << 1);
+        inputStruct->rmsValue = (float)(result/1.414213f);
+    }
+    else if (result & (15UL << 24))
+    {
+        result = sqrt_Int32((result) << 3);
+        inputStruct->rmsValue = (float)(result/2.828427f);
+    }
+    else if (result & (15UL << 20))
+    {
+        result = sqrt_Int32((result) << 7);
+        inputStruct->rmsValue = (float)(result/11.313708f);
+    }
+    else if (result & (15UL << 16))
+    {
+        result = sqrt_Int32((result) << 11);
+        inputStruct->rmsValue = (float)(result/45.254834f);
+    }
+    else if (result & (15UL << 12))
+    {
+        result = sqrt_Int32((result) << 15);
+        inputStruct->rmsValue = (float)(result/181.019336f);
+    }
+    else if (result & (15UL << 8))
+    {
+        result = sqrt_Int32((result) << 19);
+        inputStruct->rmsValue = (float)(result/724.077343f);
+    }
+    else
+    {
+        result = sqrt_Int32((result) << 23);
+        inputStruct->rmsValue = (float)(result/2896.309376f);
+    }
+
+#else
+#error      "RMS Sample by Sample Int16 - invalid option, select one define!"
+#endif
+
+}
+
+
+
+
+/******************************************************************************
+ *  Sine wave generator - array version
+ *  - using an Array
+ *  - doClean enable to generate waves with harmonics by reusing the array
+ *
+ *  - INPUT:    float * outputArray         (array to store samples)
+ *              float freq                  (frequency of signal)
+ *              float phase_rad             (phase displacement in rad)
+ *              float amplitude             (amplitude of wave - peak value)
+ *              float V_offset              (offset value)
+ *              uint_fast16_t points        (points peer cycle)
+ *              uint_fast8_t doClean        (clean the array before gen)
+ *
+ *  - RETURN:   N/A
+ ******************************************************************************/
+void sineWaveGen_Array_Float(float * outputArray, float freq, float phase_rad,
+                             float amplitude, float V_offset, uint_fast16_t points, uint_fast8_t doClean)
+{
+    uint_fast16_t counter;
+
+    /* clean array before calculate new samples */
+    if (doClean)
+    {
+        for (counter = 0; counter < points; counter++)
+        {
+            outputArray[counter] = 0;                   // reset all array
+        }
+    }
+
+    float increment = (TWO_PI * freq)/points;           // samples interval in rad
+    float x = 0;
+
+    for (counter = 0; counter < points; counter++)
+    {
+        x += increment;
+        outputArray[counter] += (amplitude * sinf(x + phase_rad)) + V_offset;
+    }
+}
+
+
+/******************************************************************************
+ *  Sine wave generator - Initialize struct parameters
+ *  - sample-by-sample version - generate wave on the fly
+ *
+ *  - INPUT:    sine_wave_parameters *inputParameters   (struct with parameters)
+ *              float freq                          (frequency of signal)
+ *              float phase_rad                     (phase displacement in rad)
+ *              float amplitude                     (amplitude of wave - peak value)
+ *              float V_offset                      (offset value)
+ *              uint_fast16_t points                (points peer cycle)
+ *              uint_fast8_t doClean                (clean the accumulator - reset wave)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void sineWaveGen_bySample_Init(sine_wave_parameters *inputParameters, float freq, float phase, float amp, float v_off, uint_fast16_t points, uint_fast8_t doClean)
+{
+    inputParameters->freq = freq;
+    inputParameters->phase_rad = phase;
+    inputParameters->amplitude = amp;
+    inputParameters->V_offset = v_off;
+    inputParameters->points = points;
+
+    inputParameters->increment = (TWO_PI * freq)/points;         // samples interval in rad
+
+    if (doClean)
+    {
+        inputParameters->acc = 0;
+    }
+}
+
+
+/******************************************************************************
+ *  Sine wave generator - Calculate the current sample
+ *
+ *  - INPUT:    sine_wave_parameters *inputParameters   (struct with parameters)
+ *
+ *  - RETURN:   (float)WaveSample                   (current sample)
+ ******************************************************************************/
+float sineWaveGen_GetSample(sine_wave_parameters *inputParameters)
+{
+    float WaveSample = 0;
+    float sine_param = inputParameters->acc + inputParameters->phase_rad;
+
+    /* calculate the sample */
+    WaveSample = inputParameters->amplitude * sinf(sine_param) + inputParameters->V_offset;
+    inputParameters->acc += inputParameters->increment;     // increment the accumulator
+    return WaveSample;
 }
 
 
@@ -175,7 +561,8 @@ void iir_SinglePoleHighPass_Float(iirHighPassFloat_t * structInput, float xValue
  ******************************************************************************/
 void iir_SinglePoleHighPass_Fixed_Init(iirHighPassFixed_t * structInput, float cutoffFreq, uint_fast8_t shift, uint_fast8_t doClean)
 {
-    volatile uint_fast8_t shift_temp = shift;
+    uint_fast8_t shift_temp = shift;
+
     /*
      * prevent shift bigger than 15 (filter stop to work)
      */
@@ -253,7 +640,8 @@ void iir_SinglePoleHighPass_Fixed(iirHighPassFixed_t * inputStuct, int32_t xValu
  ******************************************************************************/
 void iir_SinglePoleHighPass_FixedExtended_Init(iirHighPassFixedExtended_t * structInput, double cutoffFreq, uint_fast8_t shift, uint_fast8_t doClean)
 {
-    volatile uint_fast8_t shift_temp = shift;
+    uint_fast8_t shift_temp = shift;
+
     /*
      * prevent shift bigger than 30 (filter stop to work)
      */
@@ -386,7 +774,7 @@ void iir_SinglePoleLowPass_Float(iirLowPassFloat_t * inputStruct, float xValueFl
  ******************************************************************************/
 void iir_SinglePoleLowPass_Fixed_Init(iirLowPassFixed_t * structInput, float cutoffFreq, uint_fast8_t shift, uint_fast8_t doClean)
 {
-    volatile uint_fast8_t shift_temp = shift;
+    uint_fast8_t shift_temp = shift;
 
     /**********************************************************
      * prevent shift bigger than 12 (filter stop to work)
@@ -463,7 +851,8 @@ void iir_SinglePoleLowPass_Fixed(iirLowPassFixed_t * inputStruct, int32_t xValue
  ******************************************************************************/
 void iir_SinglePoleLowPass_FixedExtended_Init(iirLowPassFixedExtended_t * structInput, double cutoffFreq, uint_fast8_t shift, uint_fast8_t doClean)
 {
-    volatile uint_fast8_t shift_temp = shift;
+    uint_fast8_t shift_temp = shift;
+
     /*
      * prevent shift bigger than 28 (filter stop to work)
      */
@@ -562,4 +951,346 @@ void iir_SinglePoleLowPass_Fixed_Fast(iirLowPassFixedFast_t * inputStruct, int32
      *******************************************************/
     inputStruct->filter_acc = inputStruct->filter_acc - (inputStruct->filter_acc >> inputStruct->attenuation) + xValue;
     inputStruct->y = (inputStruct->filter_acc >> inputStruct->attenuation);
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Array Version - Initialize Structure Parameters (FLOAT)
+ *
+ *  - INPUT:    goertzel_array_float_t * inputStruct    (pointer to struct with parameters)
+ *              float bin                               (desired bin - what harmonic)
+ *              uint_fast16_t size_array                (array size - number of samples)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelArrayInit_Float(goertzel_array_float_t * inputStruct, float bin, uint_fast16_t size_array)
+{
+    float w = (2 * PI * bin)/size_array;
+    inputStruct->cr_float = cosf(w);
+    inputStruct->ci_float = sinf(w);
+
+    inputStruct->coeff_float = 2 * inputStruct->cr_float;
+    inputStruct->size_array = size_array;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Math Array Version - Do the Math (FLOAT INPUT)
+ *  - Calculate the amplitude of a desired bin (frequency) of a wave
+ *
+ *  - INPUT:    goertzel_array_float_t * inputStruct    (pointer to struct with parameters)
+ *              const float * arrayInput                (pointer to array with input samples)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelArrayFloat_Float(goertzel_array_float_t * inputStruct, const float * arrayInput)
+{
+    float s_float = 0;
+    float sprev_float = 0;
+    float sprev_float2 = 0;
+
+    uint_fast16_t size_array = inputStruct->size_array;
+
+    uint_fast16_t i;
+    for (i = 0; i < size_array ; i++)
+    {
+        s_float = arrayInput[i] + (inputStruct->coeff_float * sprev_float) - sprev_float2;
+        sprev_float2 = sprev_float;
+        sprev_float = s_float;
+    }
+
+    float real_float = (sprev_float - sprev_float2 * inputStruct->cr_float);
+    float imag_float = (sprev_float2 * inputStruct->ci_float);
+    inputStruct->real_float = real_float;
+    inputStruct->imag_float = imag_float;
+
+    float result = (sqrtf((real_float*real_float)+(imag_float*imag_float)))/(size_array/2);
+    inputStruct->result = result;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Math Array Version - Do the Math (INT16 INPUT)
+ *  - Calculate the amplitude of a desired bin (frequency) of a wave
+ *
+ *  - INPUT:    goertzel_array_float_t * inputStruct    (pointer to struct with parameters)
+ *              const int16_t * arrayInput              (pointer to array with input samples)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelArrayInt16_Float(goertzel_array_float_t * inputStruct, const int16_t * arrayInput)
+{
+    float s_float = 0;
+    float sprev_float = 0;
+    float sprev_float2 = 0;
+
+    uint_fast16_t size_array = inputStruct->size_array;
+
+    uint_fast16_t i;
+    for (i = 0; i < size_array ; i++)
+    {
+        s_float = (float)arrayInput[i] + inputStruct->coeff_float * sprev_float - sprev_float2;
+        sprev_float2 = sprev_float;
+        sprev_float = s_float;
+    }
+
+    float real_float = (sprev_float - sprev_float2 * inputStruct->cr_float);
+    float imag_float = (sprev_float2 * inputStruct->ci_float);
+    inputStruct->real_float = real_float;
+    inputStruct->imag_float = imag_float;
+
+//    float result = (sqrtf((real_float*real_float)+(imag_float*imag_float))) / ((float)size_array/2.0f);   // waste more time
+//    float result = (sqrtf((real_float*real_float)+(imag_float*imag_float))) / (size_array/2);
+    float result = (sqrtf((real_float*real_float)+(imag_float*imag_float)));        // extract square root
+    result = result / size_array;                   // divide by the total of samples
+    result = result * 2.0f;                         // multiply by 2
+    inputStruct->result = result;                   // store in the struct
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Fixed 64 Math Array Version - Initialize Structure Parameters (FIXED64)
+ *
+ *  - INPUT:    goertzel_array_fixed64_t * inputStruct  (pointer to struct with parameters)
+ *              float bin                               (desired bin - what harmonic)
+ *              uint_fast16_t size_array                (array size - number of samples)
+ *              uint_fast8_t shift                      (shift size used in fixed math)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelArrayInit_Fixed64(goertzel_array_fixed64_t * inputStruct, float bin, uint_fast16_t size_array, uint_fast8_t shift)
+{
+    float w = (2 * PI * bin)/size_array;
+    float cr_float = cosf(w);
+    float ci_float = sinf(w);
+
+    inputStruct->cr_fix = (int64_t)(cr_float * (1LL << shift));     // try rounding
+    inputStruct->ci_fix = (int64_t)(ci_float * (1LL << shift));     // try rounding
+
+    float coeff_float = 2 * cr_float;
+    inputStruct->coeff_fix = (int64_t)(coeff_float * (1LL << shift));
+
+    inputStruct->size_array = size_array;
+    inputStruct->shift = shift;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Fixed 64 Math Array Version - Do the Math (INT16 INPUT)
+ *  - Calculate the amplitude of a desired bin (frequency) of a wave
+ *
+ *  - INPUT:    goertzel_array_float_t * inputStruct    (pointer to struct with parameters)
+ *              const int16_t * arrayInput              (pointer to array with input samples)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelArrayInt16_Fixed64(goertzel_array_fixed64_t * inputStruct, const int16_t * arrayInput)
+{
+    int64_t s_fix = 0;
+    int64_t sprev_fix = 0;
+    int64_t sprev_fix2 = 0;
+
+    uint_fast16_t size_array = inputStruct->size_array;
+    uint_fast8_t shift = inputStruct->shift;
+
+    uint_fast16_t i;
+    for (i = (0); i < size_array ; i++)
+    {
+        s_fix = ((int64_t)arrayInput[i] << shift) + ((int64_t)(inputStruct->coeff_fix * sprev_fix) >> shift) - sprev_fix2;
+        sprev_fix2 = sprev_fix;
+        sprev_fix = s_fix;
+    }
+
+    int64_t real_fix = (sprev_fix - ((sprev_fix2 * inputStruct->cr_fix) >> shift));
+    int64_t imag_fix = (sprev_fix2 * inputStruct->ci_fix) >> shift;
+
+    inputStruct->real_fix = real_fix;
+    inputStruct->imag_fix = imag_fix;
+
+//    int64_t result = (int64_t)sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );  // two shifts
+    int64_t result = (int64_t)sqrtf((float)((((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // just one shift
+    result = result / (int64_t)size_array;
+    result = result * 2;
+
+    float result_float = (float)result / (1LL << (shift >> 1)); // divide pela raiz quadarda de Shift. ex.: shift = 10 (2^10), divide por 2^5
+    inputStruct->result = result_float;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Math Sample-by-sample Version - Initialize Structure Parameters
+ *
+ *  - INPUT:    goertzel_sample_float_t * inputStruct   (pointer to struct with parameters)
+ *              float bin                               (desired bin - what harmonic)
+ *              uint_fast16_t size_array                (array size - number of samples)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleInit_Float(goertzel_sample_float_t * inputStruct, float bin, uint_fast16_t size_array)
+{
+    float w = (2 * PI * bin)/size_array;
+    inputStruct->cr_float = cosf(w);
+    inputStruct->ci_float = sinf(w);
+
+    inputStruct->coeff_float = 2 * inputStruct->cr_float;
+    inputStruct->size_array = size_array;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Math Sample-by-sample Version - Add sample (FLOAT)
+ *  - Pre calculate each sample
+ *
+ *  - INPUT:    goertzel_sample_float_t * inputStruct   (pointer to struct with parameters)
+ *              float sample                            (input sample)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleAddFloat_Float(goertzel_sample_float_t * inputStruct, float sample)
+{
+    if (inputStruct->counter < inputStruct->size_array)
+    {
+        float s_float = sample + (inputStruct->coeff_float * inputStruct->sprev_float) - inputStruct->sprev_float2;
+        inputStruct->sprev_float2 = inputStruct->sprev_float;
+        inputStruct->sprev_float = s_float;
+
+        inputStruct->counter++;
+        inputStruct->s_float = s_float;
+    }
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Math Sample-by-sample Version - Add sample (INT16)
+ *  - Pre calculate each sample
+ *
+ *  - INPUT:    goertzel_sample_float_t * inputStruct   (pointer to struct with parameters)
+ *              int16_t sample                          (input sample)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleAddInt16_Float(goertzel_sample_float_t * inputStruct, int16_t sample)
+{
+    if (inputStruct->counter < inputStruct->size_array)
+    {
+        float s_float = (float)sample + (inputStruct->coeff_float * inputStruct->sprev_float) - inputStruct->sprev_float2;
+        inputStruct->sprev_float2 = inputStruct->sprev_float;
+        inputStruct->sprev_float = s_float;
+
+        inputStruct->counter++;
+        inputStruct->s_float = s_float;
+    }
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Float Math Sample-by-sample Version - Finalize math
+ *  - calculate the Real, Imag and Magnitude
+ *
+ *  - INPUT:    goertzel_sample_float_t * inputStruct   (pointer to struct with parameters)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleCalc_Float(goertzel_sample_float_t * inputStruct)
+{
+    float real_float = (inputStruct->sprev_float - inputStruct->sprev_float2 * inputStruct->cr_float);
+    float imag_float = (inputStruct->sprev_float2 * inputStruct->ci_float);
+    inputStruct->real_float = real_float;
+    inputStruct->imag_float = imag_float;
+
+    float result = (sqrtf((real_float*real_float)+(imag_float*imag_float)))/(inputStruct->size_array/2);
+    inputStruct->result = result;
+
+    inputStruct->s_float = 0;
+    inputStruct->sprev_float = 0;
+    inputStruct->sprev_float2 = 0;
+    inputStruct->counter = 0;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Fixed 64 Math Sample-by-sample Version - Initialize Structure Parameters
+ *
+ *  - INPUT:    goertzel_sample_fixed64_t* inputStruct  (pointer to struct with parameters)
+ *              float bin                               (desired bin - what harmonic)
+ *              uint_fast16_t size_array                (array size - number of samples)
+ *              uint_fast8_t shift                      (shift size used in fixed math)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleInit_Fixed64(goertzel_sample_fixed64_t* inputStruct, float bin, uint_fast16_t size_array, uint_fast8_t shift)
+{
+    float w = (2 * PI * bin)/size_array;
+    float cr_float = cosf(w);
+    float ci_float = sinf(w);
+
+    inputStruct->cr_fix = (int64_t)(cr_float * (1LL << shift));     // try rounding
+    inputStruct->ci_fix = (int64_t)(ci_float * (1LL << shift));     // try rounding
+
+    float coeff_float = 2 * cr_float;
+    inputStruct->coeff_fix = (int64_t)(coeff_float * (1LL << shift));
+
+    inputStruct->size_array = size_array;
+    inputStruct->shift = shift;
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Fixed 64 Math Sample-by-sample Version - Add sample (INT16)
+ *  - Pre calculate each sample using fixed math
+ *
+ *  - INPUT:    goertzel_sample_fixed64_t * inputStruct (pointer to struct with parameters)
+ *              int16_t sample                          (input sample)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleAddInt16_Fixed64(goertzel_sample_fixed64_t * inputStruct, int16_t sample)
+{
+    if (inputStruct->counter < inputStruct->size_array)
+    {
+        int_fast16_t shift = inputStruct->shift;
+
+        int64_t s_fix = ((int64_t)sample << shift) + ((inputStruct->coeff_fix * inputStruct->sprev_fix) >> shift) - inputStruct->sprev_fix2;
+        inputStruct->sprev_fix2 = inputStruct->sprev_fix;
+        inputStruct->sprev_fix = s_fix;
+        inputStruct->s_fix = s_fix;
+    }
+}
+
+
+/******************************************************************************
+ *  Goertzel DFT - Fixed 64 Math Sample-by-sample Version - Finalize math
+ *  - calculate the Real, Imag and Magnitude - use float math in final step
+ *
+ *  - INPUT:    goertzel_sample_fixed64_t * inputStruct  (pointer to struct with parameters)
+ *
+ *  - RETURN:   N/A (result returned inside the struct)
+ ******************************************************************************/
+void goertzelSampleCalc_Fixed64(goertzel_sample_fixed64_t * inputStruct)
+{
+    int_fast16_t shift = inputStruct->shift;
+
+    int64_t real_fix = (inputStruct->sprev_fix - ((inputStruct->sprev_fix2 * inputStruct->cr_fix) >> shift));
+    int64_t imag_fix = (inputStruct->sprev_fix2 * inputStruct->ci_fix) >> shift;
+    inputStruct->real_fix = real_fix;
+    inputStruct->imag_fix = imag_fix;
+
+///* less efficient than use float */
+////    int64_t result = (int64_t)sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );   // two shift
+//    int64_t result = (int64_t)sqrtf((float)( (((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // one shift
+//    result = result / (int64_t)inputStruct->size_array;
+//    result = result * 2;
+
+//    float result = sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );   // two shift
+    float result = sqrtf((float)((((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // one shift
+    result = result / inputStruct->size_array;
+    result = result * 2;
+
+    float result_float = (float)result / (1LL << (shift >> 1)); // sivide by sqrt(Shift). ex.: shift = 10 (2^10), divide by 2^5
+    inputStruct->result = result_float;
+
+    inputStruct->s_fix = 0;
+    inputStruct->sprev_fix = 0;
+    inputStruct->sprev_fix2 = 0;
+    inputStruct->counter = 0;
 }

@@ -11,7 +11,7 @@
  *  - https://hackaday.io/project/5334-serialplot-realtime-plotting-software
  *
  *  Author: Haroldo Amaral - agaelema@gmail.com
- *  2017/09/04
+ *  2017/09/19
  ******************************************************************************/
 #include    <msp430.h>
 #include    "driverlib.h"
@@ -27,7 +27,7 @@
 //#define     DRAW_WAVE_BY_SAMPLE
 #define     DRAW_WAVE_BY_ARRAY
 
-#define     PI                  3.1415926535897932384676
+#define     PI                  3.141592653589793f
 
 /******************************************************************************
  * Define parameters of simulated wave
@@ -113,22 +113,31 @@ void main(void)
     __no_operation();                               // debug point
 
 
-    /* variables to calculate wave points and control the loop */
-    volatile float increment = (2*PI)/WAVE_POINTS;
     volatile uint16_t counter = 0;
 
 #ifdef      DRAW_WAVE_BY_ARRAY
     for (counter = 0; counter < WAVE_POINTS; counter++)
     {
-        sample_original = WAVE_DC_LEVEL + sinf(a) * WAVE_AMPLITUDE;
-//        sample_original = WAVE_DC_LEVEL + (sinf(a) * WAVE_AMPLITUDE) + (sinf(8*a) * (WAVE_AMPLITUDE/8));
-        array_sample_original[counter] = sample_original;
-        a += increment;
+        /*************************************
+         * Generate a test signal - sine wave
+         *************************************/
+        /* fundamental sine wave */
+        sineWaveGen_Array_Float(array_sample_original, 1.0f, 0.0f, WAVE_AMPLITUDE, WAVE_DC_LEVEL, WAVE_POINTS, WAVEGEN_CLEAN);
+        /* 8th harmonic sine wave - sum with original wave */
+        sineWaveGen_Array_Float(array_sample_original, 8.0f, 0.0f, WAVE_AMPLITUDE/16, 0, WAVE_POINTS, WAVEGEN_NOTCLEAN);
     }
-   counter = 0;
+    counter = 0;
+#endif
+#ifdef      DRAW_WAVE_BY_SAMPLE
+    sine_wave_parameters sine1th = {0};
+    sineWaveGen_bySample_Init(&sine1th, 1.0f, 0, WAVE_AMPLITUDE, WAVE_DC_LEVEL, WAVE_POINTS, WAVEGEN_CLEAN);
+
+    sine_wave_parameters sine8th = {0};
+    sineWaveGen_bySample_Init(&sine8th, 8.0f, 0, WAVE_AMPLITUDE/16, 0, WAVE_POINTS, WAVEGEN_CLEAN);
 #endif
 
-   volatile float sample_no_DC = 0;
+
+    volatile float sample_no_DC = 0;
 
     while(1)
     {
@@ -137,18 +146,30 @@ void main(void)
 
 #ifdef  DRAW_WAVE_BY_ARRAY
             sample_original = array_sample_original[counter];
-            sample_original_int = (int32_t)sample_original;
-            print_float(sample_original, 2);
 #endif
 
 #ifdef  DRAW_WAVE_BY_SAMPLE
             /*************************************
              * Generate a test signal - sine wave
              *************************************/
-            sample_original = WAVE_DC_LEVEL + sinf(a) * WAVE_AMPLITUDE;
-            print_float(sample_original, 2);
-            a += increment;
+            /* fundamental sine wave */
+            sample_original = sineWaveGen_GetSample(&sine1th);
+            /* 8th harmonic sine wave - sum with original wave */
+            sample_original += sineWaveGen_GetSample(&sine8th);
 #endif
+
+            /* convert the waveform to int32_t */
+            sample_original_int = (int32_t)sample_original;
+
+            /* print/draw the waveform */
+            print_float(sample_original, 2);
+
+            /* calculate the sample without DC */
+            sample_no_DC = sample_original - WAVE_DC_LEVEL;
+            array_sample_no_dc[counter] = sample_no_DC;
+
+            /* draw original wave without DC level */
+            putChar(SEPARATOR);     print_float(sample_no_DC, 2);
 
 
 
