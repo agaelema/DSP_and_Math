@@ -4,28 +4,30 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.4 - 2017/09/18
+ *  v0.4.1 - 2017/09/20
  ******************************************************************************
  *  log:
- *    v0.1  . Initial version
- *          + add rms functions and structures
- *          + add dc filter float version and structures
- *          + add dc filter fixed version and structures
- *          + add dc filter fixed extended version and structures
- *    v0.2  . rename dc filter to iir_hipassfilter
- *          . rename associated structures
- *          + add iir low pass filter and structures
- *    v0.3  . change name of rms functions
- *          + add new rms functions
- *          + add sqrt_Int32 and sqrt_Int64 (integer versions)
- *    v0.4  . change volatile variables
- *          . optimize sqrt_Int32 by defines
- *          . change rms_valueadd input parameter (pass the value instead of pointer)
- *          - remove sqrt_Int64 - not efficient
- *          - remove rms int32 functions - not efficient
- *          + add sine wave gen function
- *          + add rmsClearStruct to function sample by sample
- *          + add Goertzel functions (array and sample-by-sample)
+ *    v0.1      . Initial version
+ *              + add rms functions and structures
+ *              + add dc filter float version and structures
+ *              + add dc filter fixed version and structures
+ *              + add dc filter fixed extended version and structures
+ *    v0.2      . rename dc filter to iir_hipassfilter
+ *              . rename associated structures
+ *              + add iir low pass filter and structures
+ *    v0.3      . change name of rms functions
+ *              + add new rms functions
+ *              + add sqrt_Int32 and sqrt_Int64 (integer versions)
+ *    v0.4      . change volatile variables
+ *              . optimize sqrt_Int32 by defines
+ *              . change rms_valueadd input parameter (pass the value instead of pointer)
+ *              - remove sqrt_Int64 - not efficient
+ *              - remove rms int32 functions - not efficient
+ *              + add sine wave gen function
+ *              + add rmsClearStruct to function sample by sample
+ *              + add Goertzel functions (array and sample-by-sample)
+ *    v0.4.1    . improve efficiency on "goertzelArrayInt16_Fixed64()"
+ *              - remove old remain functions
  ******************************************************************************/
 
 #ifndef _DSP_AND_MATH_H_
@@ -314,9 +316,7 @@ float rmsValueArray_Int16_StdMath(const int16_t * arrayIn, uint_fast16_t size, i
 //#define     RMS_SAMPLE_STD         // rms using standard lib (math.h) - more accurate
 #define     RMS_SAMPLE_OPTIMIZED   // using integer square root algorithm - more efficient
 
-//void rmsValueAddSample_Float(rms_float_t * inputStruct, const float * sampleFloat);
 void rmsValueAddSample_Float(rms_float_t * inputStruct, float sample);
-//void rmsValueAddSample_Int16(rms_int16_t * inputStruct, const int16_t * sample);
 void rmsValueAddSample_Int16(rms_int16_t * inputStruct, int16_t sample);
 
 void rmsClearStruct_Float(rms_float_t * inputStruct);

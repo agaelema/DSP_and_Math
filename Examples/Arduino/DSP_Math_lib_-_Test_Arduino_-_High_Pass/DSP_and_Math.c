@@ -4,28 +4,30 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.4 - 2017/09/18
+ *  v0.4.1 - 2017/09/20
  ******************************************************************************
  *  log:
- *    v0.1  . Initial version
- *          + add rms functions and structures
- *          + add dc filter float version and structures
- *          + add dc filter fixed version and structures
- *          + add dc filter fixed extended version and structures
- *    v0.2  . rename dc filter to iir_hipassfilter
- *          . rename associated structures
- *          + add iir low pass filter and structures
- *    v0.3  . change name of rms functions
- *          + add new rms functions
- *          + add sqrt_Int32 and sqrt_Int64 (integer versions)
- *    v0.4  . change volatile variables
- *          . optimize sqrt_Int32 by defines
- *          . change rms_valueadd input parameter (pass the value instead of pointer)
- *          - remove sqrt_Int64 - not efficient
- *          - remove rms int32 functions - not efficient
- *          + add sine wave gen function
- *          + add rmsClearStruct to function sample by sample
- *          + add Goertzel functions (array and sample-by-sample)
+ *    v0.1      . Initial version
+ *              + add rms functions and structures
+ *              + add dc filter float version and structures
+ *              + add dc filter fixed version and structures
+ *              + add dc filter fixed extended version and structures
+ *    v0.2      . rename dc filter to iir_hipassfilter
+ *              . rename associated structures
+ *              + add iir low pass filter and structures
+ *    v0.3      . change name of rms functions
+ *              + add new rms functions
+ *              + add sqrt_Int32 and sqrt_Int64 (integer versions)
+ *    v0.4      . change volatile variables
+ *              . optimize sqrt_Int32 by defines
+ *              . change rms_valueadd input parameter (pass the value instead of pointer)
+ *              - remove sqrt_Int64 - not efficient
+ *              - remove rms int32 functions - not efficient
+ *              + add sine wave gen function
+ *              + add rmsClearStruct to function sample by sample
+ *              + add Goertzel functions (array and sample-by-sample)
+ *    v0.4.1    . improve efficiency on "goertzelArrayInt16_Fixed64()"
+ *              - remove old remain functions
  ******************************************************************************/
 
 #include    "DSP_and_Math.h"
@@ -1107,10 +1109,11 @@ void goertzelArrayInt16_Fixed64(goertzel_array_fixed64_t * inputStruct, const in
     inputStruct->real_fix = real_fix;
     inputStruct->imag_fix = imag_fix;
 
-//    int64_t result = (int64_t)sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );  // two shifts
-    int64_t result = (int64_t)sqrtf((float)((((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // just one shift
-    result = result / (int64_t)size_array;
+    //    float result = sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );   // two shift
+    float result = sqrtf((float)((((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // one shift
+    result = result / inputStruct->size_array;
     result = result * 2;
+
 
     float result_float = (float)result / (1LL << (shift >> 1)); // divide pela raiz quadarda de Shift. ex.: shift = 10 (2^10), divide por 2^5
     inputStruct->result = result_float;
@@ -1274,12 +1277,6 @@ void goertzelSampleCalc_Fixed64(goertzel_sample_fixed64_t * inputStruct)
     int64_t imag_fix = (inputStruct->sprev_fix2 * inputStruct->ci_fix) >> shift;
     inputStruct->real_fix = real_fix;
     inputStruct->imag_fix = imag_fix;
-
-///* less efficient than use float */
-////    int64_t result = (int64_t)sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );   // two shift
-//    int64_t result = (int64_t)sqrtf((float)( (((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // one shift
-//    result = result / (int64_t)inputStruct->size_array;
-//    result = result * 2;
 
 //    float result = sqrtf((float)((real_fix*real_fix)>>shift) + ((imag_fix*imag_fix)>>shift) );   // two shift
     float result = sqrtf((float)((((real_fix*real_fix) + (imag_fix*imag_fix)) >> shift)));      // one shift
