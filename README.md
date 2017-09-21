@@ -76,7 +76,7 @@ void iir_SinglePoleHighPass_Float(iirHighPassFloat_t * structInput, float xValue
 
 Use fixed point to math increasing the efficiency in devices withou a FPU.
 
-First function initialize the struct with parameters based in the cuttof frequency (normalized from 0 to 1) and shift size (rotation used in fixed math) between 8 and 15. A bigger shift value give more accuracy but will limit the input value (see function coment). It's possible to select between clean or not the variables during the inittialization. Can be useful if you need to change the cutoff frequency withou reset entire filter state.
+First function initialize the struct with parameters based in the cuttof frequency (normalized from 0 to 1) and shift size (rotation used in fixed math) between 8 and 15. Bigger shift value give more accuracy but will limit the input value (see function coment). It's possible to select between clean or not the variables during the inittialization. Can be useful if you need to change the cutoff frequency without reset filter state.
 
 ``` c
 void iir_SinglePoleHighPass_Fixed_Init(iirHighPassFixed_t * structInput, float cutoffFreq, uint_fast8_t shift, uint_fast8_t doClean);
@@ -90,7 +90,7 @@ void iir_SinglePoleHighPass_Fixed(iirHighPassFixed_t * inputStuct, int32_t xValu
 
 Use fixed point to math increasing the efficiency in devices withou a FPU. Extended version use variables with 64 bits allowing more accuracy and bigger input values
 
-First function initialize the struct with parameters based in the cuttof frequency (normalized from 0 to 1) and shift size (rotation used in fixed math) between 8 and 15. A bigger shift value give more accuracy but will limit the input value (see function coment). It's possible to select between clean or not the variables during the inittialization. Can be useful if you need to change the cutoff frequency withou reset entire filter state.
+First function initialize the struct with parameters based in the cuttof frequency (normalized from 0 to 1) and shift size (rotation used in fixed math) between 8 and 30. Bigger shift value give more accuracy but will limit the input value (see function coment). It's possible to select between clean or not the variables during the inittialization. Can be useful if you need to change the cutoff frequency without reset filter state.
 
 ``` c
 void iir_SinglePoleHighPass_FixedExtended_Init(iirHighPassFixedExtended_t * structInput, double cutoffFreq, uint_fast8_t shift, uint_fast8_t doClean);
