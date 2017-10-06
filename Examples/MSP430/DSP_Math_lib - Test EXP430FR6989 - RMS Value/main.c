@@ -30,7 +30,7 @@
  * Define parameters of simulated wave
  ******************************************************************************/
 #define     WAVE_DC_LEVEL       0.0f
-#define     WAVE_AMPLITUDE      100.0f
+#define     WAVE_AMPLITUDE      220.0f
 #define     WAVE_POINTS         64
 
 
@@ -152,10 +152,10 @@ void main(void)
 
             volatile float rms_test_float0 = 0;
             volatile float rms_test_float1 = 0;
-            volatile float rms_test_float2 = 0;
+//            volatile float rms_test_float2 = 0;
             volatile float rms_test_float3 = 0;
             volatile float rms_test_float4 = 0;
-            volatile float rms_test_float5 = 0;
+//            volatile float rms_test_float5 = 0;
             /************************************************
              * test both methods to calculate RMS value
              * - by an entire array
