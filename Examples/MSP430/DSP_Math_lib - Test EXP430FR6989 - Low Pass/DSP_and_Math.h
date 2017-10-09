@@ -4,7 +4,7 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.4.1 - 2017/09/20
+ *  v0.4.2 - 2017/10/09
  ******************************************************************************
  *  log:
  *    v0.1      . Initial version
@@ -28,6 +28,7 @@
  *              + add Goertzel functions (array and sample-by-sample)
  *    v0.4.1    . improve efficiency on "goertzelArrayInt16_Fixed64()"
  *              - remove old remain functions
+ *    v0.4.2    . fix "sineWaveGen_GetSample()" function - phase error
  ******************************************************************************/
 
 #ifndef _DSP_AND_MATH_H_

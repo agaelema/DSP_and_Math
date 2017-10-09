@@ -4,7 +4,7 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.4.1 - 2017/09/20
+ *  v0.4.2 - 2017/10/09
  ******************************************************************************
  *  log:
  *    v0.1      . Initial version
@@ -28,6 +28,7 @@
  *              + add Goertzel functions (array and sample-by-sample)
  *    v0.4.1    . improve efficiency on "goertzelArrayInt16_Fixed64()"
  *              - remove old remain functions
+ *    v0.4.2    . fix "sineWaveGen_GetSample()" function - phase error
  ******************************************************************************/
 
 #include    "DSP_and_Math.h"
@@ -440,8 +441,8 @@ void sineWaveGen_Array_Float(float * outputArray, float freq, float phase_rad,
 
     for (counter = 0; counter < points; counter++)
     {
-        x += increment;
         outputArray[counter] += (amplitude * sinf(x + phase_rad)) + V_offset;
+        x += increment;
     }
 }
 
@@ -487,6 +488,7 @@ void sineWaveGen_bySample_Init(sine_wave_parameters *inputParameters, float freq
 float sineWaveGen_GetSample(sine_wave_parameters *inputParameters)
 {
     float WaveSample = 0;
+//    float sine_param = inputParameters->acc + inputParameters->phase_rad;
     float sine_param = inputParameters->acc + inputParameters->phase_rad;
 
     /* calculate the sample */

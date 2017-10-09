@@ -1,7 +1,7 @@
 ******************************************************************************
                   MSP430 Linker PC v16.9.4                     
 ******************************************************************************
->> Linked Thu Oct 05 22:55:11 2017
+>> Linked Mon Oct 09 01:38:32 2017
 
 OUTPUT FILE NAME:   <DSP_Math_lib - Test EXP430FR6989 - Goertzel_DFT.out>
 ENTRY POINT SYMBOL: "_c_int00_noargs_noexit_mpu"  address: 00004400
@@ -79,7 +79,7 @@ MEMORY CONFIGURATION
   INT53                 0000fffa   00000002  00000002  00000000  RWIX
   INT54                 0000fffc   00000002  00000002  00000000  RWIX
   RESET                 0000fffe   00000002  00000002  00000000  RWIX
-  FRAM2                 00010000   00014000  00001db2  0001224e  RWIX
+  FRAM2                 00010000   00014000  00001db6  0001224a  RWIX
 
 
 SECTION ALLOCATION MAP
@@ -254,7 +254,7 @@ SYSNMI     0    0000fffc    00000002
 .reset     0    0000fffe    00000002     
                   0000fffe    00000002     rts430x_lc_rd_eabi.lib : boot.obj (.reset)
 
-.text      0    00010000    00001db2     
+.text      0    00010000    00001db6     
                   00010000    00000416     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_cos_sin.o (.text:msp430_cos_sin)
                   00010416    000002cc     main.obj (.text:main)
                   000106e2    00000280     embedded_printf.obj (.text:embedded_ftoa)
@@ -263,65 +263,65 @@ SYSNMI     0    0000fffc    00000002
                   00010cf0    00000132     rts430x_lc_rd_eabi.lib : fs_add.obj (.text)
                   00010e22    00000100                            : fltllif.obj (.text:__mspabi_fltllif)
                   00010f22    00000100     DSP_and_Math.obj (.text:goertzelArrayInit_Fixed64)
-                  00011022    000000ec     DSP_and_Math.obj (.text:goertzelArrayFloat_Float)
-                  0001110e    000000ec     DSP_and_Math.obj (.text:sineWaveGen_Array_Float)
-                  000111fa    000000cc     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_common.o (.text:msp430_calc_sqrt)
-                  000112c6    000000c0     DSP_and_Math.obj (.text:goertzelSampleCalc_Float)
-                  00011386    000000b8     rts430x_lc_rd_eabi.lib : fs_mpy.obj (.text)
-                  0001143e    00000090                            : fs_div.obj (.text)
-                  000114ce    00000084                            : fixflli.obj (.text:__mspabi_fixflli)
-                  00011552    00000082                            : autoinit_wdt.obj (.text:_auto_init_hold_wdt)
-                  000115d4    0000007e                            : fs_tol.obj (.text)
-                  00011652    00000078                            : copy_decompress_lzss.obj (.text:decompress:lzss:__TI_decompress_lzss)
-                  000116ca    00000072     embedded_printf.obj (.text:embedded_prints)
-                  0001173c    00000070     DSP_and_Math.obj (.text:goertzelArrayInit_Float)
-                  000117ac    00000070     DSP_and_Math.obj (.text:goertzelSampleInit_Float)
-                  0001181c    00000068     rts430x_lc_rd_eabi.lib : fs_toi.obj (.text)
-                  00011884    00000066                            : cpy_tbl.obj (.text:copy_in)
-                  000118ea    0000005c                            : mult64_f5hw.obj (.text:__mpyll)
-                  00011946    0000005a     DSP_and_Math.obj (.text:goertzelSampleAddFloat_Float)
-                  000119a0    00000058     rts430x_lc_rd_eabi.lib : div32u.obj (.text)
-                  000119f8    0000004c                            : fs_toul.obj (.text)
-                  00011a44    0000004a                            : fs_cmp.obj (.text)
-                  00011a8e    0000004a                            : fs_ltof.obj (.text)
-                  00011ad8    00000040                            : asr64.obj (.text:__mspabi_srall)
-                  00011b18    00000040                            : div32s.obj (.text)
-                  00011b58    0000003e                            : lsl32.obj (.text:l_lsl_const)
-                  00011b96    0000003a                            : lsl64.obj (.text:__mspabi_sllll)
-                  00011bd0    0000003a                            : lsr64.obj (.text:__mspabi_srlll)
-                  00011c0a    0000002c     MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib : mpu_init.o (.text:__mpu_init)
-                  00011c36    0000002c     rts430x_lc_rd_eabi.lib : div16s.obj (.text)
-                  00011c62    00000028     embedded_printf.obj (.text:print_float)
-                  00011c8a    00000026     serial_conf.obj (.text:serial_configure)
-                  00011cb0    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.obj (.text:decompress:ZI:__TI_zero_init)
-                  00011cd4    00000024                            : fs_utof.obj (.text)
-                  00011cf8    00000020     wdt_a.obj (.text:WDT_A_hold)
-                  00011d18    00000018     rts430x_lc_rd_eabi.lib : mult16_f5hw.obj (.text)
-                  00011d30    00000016                            : div16u.obj (.text)
-                  00011d46    00000014                            : memcpy.obj (.text:memcpy)
-                  00011d5a    00000012                            : copy_decompress_none.obj (.text:decompress:none:__TI_decompress_none)
-                  00011d6c    0000000e     serial_conf.obj (.text:serial_sendbyte)
-                  00011d7a    0000000a     embedded_printf.obj (.text:print_string)
-                  00011d84    0000000a     rts430x_lc_rd_eabi.lib : fs_neg.obj (.text)
-                  00011d8e    00000006     pmm.obj (.text:PMM_unlockLPM5)
-                  00011d94    00000006     rts430x_lc_rd_eabi.lib : exit.obj (.text:abort)
-                  00011d9a    00000006     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_cos_sin.o (.text:cosf)
-                  00011da0    00000006     embedded_printf.obj (.text:putChar)
-                  00011da6    00000006     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_cos_sin.o (.text:sinf)
-                  00011dac    00000004     rts430x_lc_rd_eabi.lib : pre_init.obj (.text:_system_pre_init)
-                  00011db0    00000002                            : startup.obj (.text:_system_post_cinit)
+                  00011022    000000f0     DSP_and_Math.obj (.text:sineWaveGen_Array_Float)
+                  00011112    000000ec     DSP_and_Math.obj (.text:goertzelArrayFloat_Float)
+                  000111fe    000000cc     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_common.o (.text:msp430_calc_sqrt)
+                  000112ca    000000c0     DSP_and_Math.obj (.text:goertzelSampleCalc_Float)
+                  0001138a    000000b8     rts430x_lc_rd_eabi.lib : fs_mpy.obj (.text)
+                  00011442    00000090                            : fs_div.obj (.text)
+                  000114d2    00000084                            : fixflli.obj (.text:__mspabi_fixflli)
+                  00011556    00000082                            : autoinit_wdt.obj (.text:_auto_init_hold_wdt)
+                  000115d8    0000007e                            : fs_tol.obj (.text)
+                  00011656    00000078                            : copy_decompress_lzss.obj (.text:decompress:lzss:__TI_decompress_lzss)
+                  000116ce    00000072     embedded_printf.obj (.text:embedded_prints)
+                  00011740    00000070     DSP_and_Math.obj (.text:goertzelArrayInit_Float)
+                  000117b0    00000070     DSP_and_Math.obj (.text:goertzelSampleInit_Float)
+                  00011820    00000068     rts430x_lc_rd_eabi.lib : fs_toi.obj (.text)
+                  00011888    00000066                            : cpy_tbl.obj (.text:copy_in)
+                  000118ee    0000005c                            : mult64_f5hw.obj (.text:__mpyll)
+                  0001194a    0000005a     DSP_and_Math.obj (.text:goertzelSampleAddFloat_Float)
+                  000119a4    00000058     rts430x_lc_rd_eabi.lib : div32u.obj (.text)
+                  000119fc    0000004c                            : fs_toul.obj (.text)
+                  00011a48    0000004a                            : fs_cmp.obj (.text)
+                  00011a92    0000004a                            : fs_ltof.obj (.text)
+                  00011adc    00000040                            : asr64.obj (.text:__mspabi_srall)
+                  00011b1c    00000040                            : div32s.obj (.text)
+                  00011b5c    0000003e                            : lsl32.obj (.text:l_lsl_const)
+                  00011b9a    0000003a                            : lsl64.obj (.text:__mspabi_sllll)
+                  00011bd4    0000003a                            : lsr64.obj (.text:__mspabi_srlll)
+                  00011c0e    0000002c     MSPMPU_INIT_LIB_CCS_msp430_large_code_restricted_data.lib : mpu_init.o (.text:__mpu_init)
+                  00011c3a    0000002c     rts430x_lc_rd_eabi.lib : div16s.obj (.text)
+                  00011c66    00000028     embedded_printf.obj (.text:print_float)
+                  00011c8e    00000026     serial_conf.obj (.text:serial_configure)
+                  00011cb4    00000024     rts430x_lc_rd_eabi.lib : copy_zero_init.obj (.text:decompress:ZI:__TI_zero_init)
+                  00011cd8    00000024                            : fs_utof.obj (.text)
+                  00011cfc    00000020     wdt_a.obj (.text:WDT_A_hold)
+                  00011d1c    00000018     rts430x_lc_rd_eabi.lib : mult16_f5hw.obj (.text)
+                  00011d34    00000016                            : div16u.obj (.text)
+                  00011d4a    00000014                            : memcpy.obj (.text:memcpy)
+                  00011d5e    00000012                            : copy_decompress_none.obj (.text:decompress:none:__TI_decompress_none)
+                  00011d70    0000000e     serial_conf.obj (.text:serial_sendbyte)
+                  00011d7e    0000000a     embedded_printf.obj (.text:print_string)
+                  00011d88    0000000a     rts430x_lc_rd_eabi.lib : fs_neg.obj (.text)
+                  00011d92    00000006     pmm.obj (.text:PMM_unlockLPM5)
+                  00011d98    00000006     rts430x_lc_rd_eabi.lib : exit.obj (.text:abort)
+                  00011d9e    00000006     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_cos_sin.o (.text:cosf)
+                  00011da4    00000006     embedded_printf.obj (.text:putChar)
+                  00011daa    00000006     MSPMATHLIB_CCS_msp430_5xx_6xx_FRxx_large_code_restricted_data.lib : msp430_cos_sin.o (.text:sinf)
+                  00011db0    00000004     rts430x_lc_rd_eabi.lib : pre_init.obj (.text:_system_pre_init)
+                  00011db4    00000002                            : startup.obj (.text:_system_post_cinit)
 
 MODULE SUMMARY
 
        Module                     code   ro data   rw data
        ------                     ----   -------   -------
     .\
-       DSP_and_Math.obj           1832   0         0      
+       DSP_and_Math.obj           1836   0         0      
        main.obj                   716    76        618    
        embedded_printf.obj        810    0         0      
        serial_conf.obj            52     0         0      
     +--+--------------------------+------+---------+---------+
-       Total:                     3410   76        618    
+       Total:                     3414   76        618    
                                                           
     .\driverlib\MSP430FR5xx_6xx\
        wdt_a.obj                  32     0         0      
@@ -411,7 +411,7 @@ MODULE SUMMARY
        Stack:                     0      0         160    
        Linker Generated:          0      41        0      
     +--+--------------------------+------+---------+---------+
-       Grand Total:               7640   403       778    
+       Grand Total:               7644   403       778    
 
 
 LINKER GENERATED COPY TABLES
@@ -690,7 +690,7 @@ address   name
 000009ce  AESAXIN_L                   
 000004be  BCD2BIN                     
 000004bc  BIN2BCD                     
-00011d94  C$$EXIT                     
+00011d98  C$$EXIT                     
 0000043e  CAPTIO0CTL                  
 0000043f  CAPTIO0CTL_H                
 0000043e  CAPTIO0CTL_L                
@@ -1504,7 +1504,7 @@ address   name
 0000012a  PMMIFG                      
 0000012b  PMMIFG_H                    
 0000012a  PMMIFG_L                    
-00011d8e  PMM_unlockLPM5              
+00011d92  PMM_unlockLPM5              
 00000158  RCCTL0                      
 00000159  RCCTL0_H                    
 00000158  RCCTL0_L                    
@@ -1829,7 +1829,7 @@ address   name
 0000015c  WDTCTL                      
 0000015d  WDTCTL_H                    
 0000015c  WDTCTL_L                    
-00011cf8  WDT_A_hold                  
+00011cfc  WDT_A_hold                  
 00002400  __STACK_END                 
 000000a0  __STACK_SIZE                
 UNDEFED   __TI_BINIT_Base             
@@ -1841,8 +1841,8 @@ UNDEFED   __TI_BINIT_Limit
 UNDEFED   __TI_INITARRAY_Base         
 UNDEFED   __TI_INITARRAY_Limit        
 0000441e  __TI_ISR_TRAP               
-00011652  __TI_decompress_lzss        
-00011d5a  __TI_decompress_none        
+00011656  __TI_decompress_lzss        
+00011d5e  __TI_decompress_none        
 0000ffc6  __TI_int27                  
 0000ffc8  __TI_int28                  
 0000ffca  __TI_int29                  
@@ -1874,75 +1874,75 @@ UNDEFED   __TI_INITARRAY_Limit
 ffffffff  __TI_pprof_out_hndl         
 ffffffff  __TI_prof_data_size         
 ffffffff  __TI_prof_data_start        
-00011cb0  __TI_zero_init              
+00011cb4  __TI_zero_init              
 ffffffff  __c_args__                  
 00000001  __mpu_enable                
-00011c0a  __mpu_init                  
+00011c0e  __mpu_init                  
 00010cf6  __mspabi_addf               
-00011a44  __mspabi_cmpf               
-0001143e  __mspabi_divf               
-00011c36  __mspabi_divi               
-00011b18  __mspabi_divli              
-00011d30  __mspabi_divu               
-000119a0  __mspabi_divul              
-0001181c  __mspabi_fixfi              
-000115d4  __mspabi_fixfli             
-000114ce  __mspabi_fixflli            
-000119f8  __mspabi_fixful             
-00011a8e  __mspabi_fltlif             
+00011a48  __mspabi_cmpf               
+00011442  __mspabi_divf               
+00011c3a  __mspabi_divi               
+00011b1c  __mspabi_divli              
+00011d34  __mspabi_divu               
+000119a4  __mspabi_divul              
+00011820  __mspabi_fixfi              
+000115d8  __mspabi_fixfli             
+000114d2  __mspabi_fixflli            
+000119fc  __mspabi_fixful             
+00011a92  __mspabi_fltlif             
 00010e22  __mspabi_fltllif            
-00011cd4  __mspabi_fltuf              
-00011386  __mspabi_mpyf               
-00011d18  __mspabi_mpyi_f5hw          
-000118ea  __mspabi_mpyll_f5hw         
-00011d84  __mspabi_negf               
-00011c36  __mspabi_remi               
-00011b18  __mspabi_remli              
-00011d30  __mspabi_remu               
-000119a0  __mspabi_remul              
-00011b90  __mspabi_slll_1             
-00011b6c  __mspabi_slll_10            
-00011b68  __mspabi_slll_11            
-00011b64  __mspabi_slll_12            
-00011b60  __mspabi_slll_13            
-00011b5c  __mspabi_slll_14            
-00011b58  __mspabi_slll_15            
-00011b8c  __mspabi_slll_2             
-00011b88  __mspabi_slll_3             
-00011b84  __mspabi_slll_4             
-00011b80  __mspabi_slll_5             
-00011b7c  __mspabi_slll_6             
-00011b78  __mspabi_slll_7             
-00011b74  __mspabi_slll_8             
-00011b70  __mspabi_slll_9             
-00011b96  __mspabi_sllll              
-00011ad8  __mspabi_srall              
-00011bd0  __mspabi_srlll              
+00011cd8  __mspabi_fltuf              
+0001138a  __mspabi_mpyf               
+00011d1c  __mspabi_mpyi_f5hw          
+000118ee  __mspabi_mpyll_f5hw         
+00011d88  __mspabi_negf               
+00011c3a  __mspabi_remi               
+00011b1c  __mspabi_remli              
+00011d34  __mspabi_remu               
+000119a4  __mspabi_remul              
+00011b94  __mspabi_slll_1             
+00011b70  __mspabi_slll_10            
+00011b6c  __mspabi_slll_11            
+00011b68  __mspabi_slll_12            
+00011b64  __mspabi_slll_13            
+00011b60  __mspabi_slll_14            
+00011b5c  __mspabi_slll_15            
+00011b90  __mspabi_slll_2             
+00011b8c  __mspabi_slll_3             
+00011b88  __mspabi_slll_4             
+00011b84  __mspabi_slll_5             
+00011b80  __mspabi_slll_6             
+00011b7c  __mspabi_slll_7             
+00011b78  __mspabi_slll_8             
+00011b74  __mspabi_slll_9             
+00011b9a  __mspabi_sllll              
+00011adc  __mspabi_srall              
+00011bd4  __mspabi_srlll              
 00010cf0  __mspabi_subf               
-00011552  _auto_init_hold_wdt         
+00011556  _auto_init_hold_wdt         
 00004400  _c_int00_noargs_noexit_mpu  
 0000fffe  _reset_vector               
 00002360  _stack                      
-00011db0  _system_post_cinit          
-00011dac  _system_pre_init            
-00011d94  abort                       
+00011db4  _system_post_cinit          
+00011db0  _system_pre_init            
+00011d98  abort                       
 00001d00  array_sample_int16          
 00001c00  array_sample_original       
-00011884  copy_in                     
-00011d9a  cosf                        
+00011888  copy_in                     
+00011d9e  cosf                        
 000106e2  embedded_ftoa               
-000116ca  embedded_prints             
+000116ce  embedded_prints             
 00004400  fram_ipe_end                
 00004400  fram_ipe_start              
 00004400  fram_rw_start               
 00004400  fram_rx_start               
-00011022  goertzelArrayFloat_Float    
+00011112  goertzelArrayFloat_Float    
 00010f22  goertzelArrayInit_Fixed64   
-0001173c  goertzelArrayInit_Float     
+00011740  goertzelArrayInit_Float     
 00010962  goertzelArrayInt16_Fixed64  
-00011946  goertzelSampleAddFloat_Float
-000112c6  goertzelSampleCalc_Float    
-000117ac  goertzelSampleInit_Float    
+0001194a  goertzelSampleAddFloat_Float
+000112ca  goertzelSampleCalc_Float    
+000117b0  goertzelSampleInit_Float    
 00001e30  goertzel_01_01th            
 00001e4a  goertzel_01_08th            
 00001de0  goertzel_02_01th            
@@ -1950,25 +1950,25 @@ ffffffff  __c_args__
 00001d80  goertzel_03_01th            
 00001db0  goertzel_03_08th            
 00010416  main                        
-00011d46  memcpy                      
+00011d4a  memcpy                      
 0000a501  mpu_ctl0_value              
 00001513  mpu_sam_value               
 00000440  mpu_segment_border1         
 00000440  mpu_segment_border2         
-000111fa  msp430_calc_sqrt            
+000111fe  msp430_calc_sqrt            
 00004532  msp430_cos_coeffs           
 00010000  msp430_cos_sin              
 00004546  msp430_sin_coeffs           
 00004426  msp430_sqrt_lookup          
-00011c62  print_float                 
-00011d7a  print_string                
-00011da0  putChar                     
+00011c66  print_float                 
+00011d7e  print_string                
+00011da4  putChar                     
 00001e64  sample_original             
 00001e68  sample_original_int16       
-00011c8a  serial_configure            
-00011d6c  serial_sendbyte             
-0001110e  sineWaveGen_Array_Float     
-00011da6  sinf                        
+00011c8e  serial_configure            
+00011d70  serial_sendbyte             
+00011022  sineWaveGen_Array_Float     
+00011daa  sinf                        
 00010bb8  sqrtf                       
 
 
@@ -3439,72 +3439,72 @@ address   name
 00010cf6  __mspabi_addf               
 00010e22  __mspabi_fltllif            
 00010f22  goertzelArrayInit_Fixed64   
-00011022  goertzelArrayFloat_Float    
-0001110e  sineWaveGen_Array_Float     
-000111fa  msp430_calc_sqrt            
-000112c6  goertzelSampleCalc_Float    
-00011386  __mspabi_mpyf               
-0001143e  __mspabi_divf               
-000114ce  __mspabi_fixflli            
-00011552  _auto_init_hold_wdt         
-000115d4  __mspabi_fixfli             
-00011652  __TI_decompress_lzss        
-000116ca  embedded_prints             
-0001173c  goertzelArrayInit_Float     
-000117ac  goertzelSampleInit_Float    
-0001181c  __mspabi_fixfi              
-00011884  copy_in                     
-000118ea  __mspabi_mpyll_f5hw         
-00011946  goertzelSampleAddFloat_Float
-000119a0  __mspabi_divul              
-000119a0  __mspabi_remul              
-000119f8  __mspabi_fixful             
-00011a44  __mspabi_cmpf               
-00011a8e  __mspabi_fltlif             
-00011ad8  __mspabi_srall              
-00011b18  __mspabi_divli              
-00011b18  __mspabi_remli              
-00011b58  __mspabi_slll_15            
-00011b5c  __mspabi_slll_14            
-00011b60  __mspabi_slll_13            
-00011b64  __mspabi_slll_12            
-00011b68  __mspabi_slll_11            
-00011b6c  __mspabi_slll_10            
-00011b70  __mspabi_slll_9             
-00011b74  __mspabi_slll_8             
-00011b78  __mspabi_slll_7             
-00011b7c  __mspabi_slll_6             
-00011b80  __mspabi_slll_5             
-00011b84  __mspabi_slll_4             
-00011b88  __mspabi_slll_3             
-00011b8c  __mspabi_slll_2             
-00011b90  __mspabi_slll_1             
-00011b96  __mspabi_sllll              
-00011bd0  __mspabi_srlll              
-00011c0a  __mpu_init                  
-00011c36  __mspabi_divi               
-00011c36  __mspabi_remi               
-00011c62  print_float                 
-00011c8a  serial_configure            
-00011cb0  __TI_zero_init              
-00011cd4  __mspabi_fltuf              
-00011cf8  WDT_A_hold                  
-00011d18  __mspabi_mpyi_f5hw          
-00011d30  __mspabi_divu               
-00011d30  __mspabi_remu               
-00011d46  memcpy                      
-00011d5a  __TI_decompress_none        
-00011d6c  serial_sendbyte             
-00011d7a  print_string                
-00011d84  __mspabi_negf               
-00011d8e  PMM_unlockLPM5              
-00011d94  C$$EXIT                     
-00011d94  abort                       
-00011d9a  cosf                        
-00011da0  putChar                     
-00011da6  sinf                        
-00011dac  _system_pre_init            
-00011db0  _system_post_cinit          
+00011022  sineWaveGen_Array_Float     
+00011112  goertzelArrayFloat_Float    
+000111fe  msp430_calc_sqrt            
+000112ca  goertzelSampleCalc_Float    
+0001138a  __mspabi_mpyf               
+00011442  __mspabi_divf               
+000114d2  __mspabi_fixflli            
+00011556  _auto_init_hold_wdt         
+000115d8  __mspabi_fixfli             
+00011656  __TI_decompress_lzss        
+000116ce  embedded_prints             
+00011740  goertzelArrayInit_Float     
+000117b0  goertzelSampleInit_Float    
+00011820  __mspabi_fixfi              
+00011888  copy_in                     
+000118ee  __mspabi_mpyll_f5hw         
+0001194a  goertzelSampleAddFloat_Float
+000119a4  __mspabi_divul              
+000119a4  __mspabi_remul              
+000119fc  __mspabi_fixful             
+00011a48  __mspabi_cmpf               
+00011a92  __mspabi_fltlif             
+00011adc  __mspabi_srall              
+00011b1c  __mspabi_divli              
+00011b1c  __mspabi_remli              
+00011b5c  __mspabi_slll_15            
+00011b60  __mspabi_slll_14            
+00011b64  __mspabi_slll_13            
+00011b68  __mspabi_slll_12            
+00011b6c  __mspabi_slll_11            
+00011b70  __mspabi_slll_10            
+00011b74  __mspabi_slll_9             
+00011b78  __mspabi_slll_8             
+00011b7c  __mspabi_slll_7             
+00011b80  __mspabi_slll_6             
+00011b84  __mspabi_slll_5             
+00011b88  __mspabi_slll_4             
+00011b8c  __mspabi_slll_3             
+00011b90  __mspabi_slll_2             
+00011b94  __mspabi_slll_1             
+00011b9a  __mspabi_sllll              
+00011bd4  __mspabi_srlll              
+00011c0e  __mpu_init                  
+00011c3a  __mspabi_divi               
+00011c3a  __mspabi_remi               
+00011c66  print_float                 
+00011c8e  serial_configure            
+00011cb4  __TI_zero_init              
+00011cd8  __mspabi_fltuf              
+00011cfc  WDT_A_hold                  
+00011d1c  __mspabi_mpyi_f5hw          
+00011d34  __mspabi_divu               
+00011d34  __mspabi_remu               
+00011d4a  memcpy                      
+00011d5e  __TI_decompress_none        
+00011d70  serial_sendbyte             
+00011d7e  print_string                
+00011d88  __mspabi_negf               
+00011d92  PMM_unlockLPM5              
+00011d98  C$$EXIT                     
+00011d98  abort                       
+00011d9e  cosf                        
+00011da4  putChar                     
+00011daa  sinf                        
+00011db0  _system_pre_init            
+00011db4  _system_post_cinit          
 ffffffff  __TI_pprof_out_hndl         
 ffffffff  __TI_prof_data_size         
 ffffffff  __TI_prof_data_start        
