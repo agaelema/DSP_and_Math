@@ -4,7 +4,7 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.4.1 - 2017/09/20
+ *  v0.4.3 - 2017/10/09
  ******************************************************************************
  *  log:
  *    v0.1      . Initial version
@@ -28,6 +28,8 @@
  *              + add Goertzel functions (array and sample-by-sample)
  *    v0.4.1    . improve efficiency on "goertzelArrayInt16_Fixed64()"
  *              - remove old remain functions
+ *    v0.4.2    . fix "sineWaveGen_GetSample()" function - phase error
+ *    v0.4.3    . organized defines
  ******************************************************************************/
 
 #include    "DSP_and_Math.h"
@@ -244,7 +246,6 @@ float rmsValueArray_Int16_StdMath(const int16_t * arrayIn, uint_fast16_t size, i
  *
  *  - RETURN:   N/A (result returned inside the struct)
  ******************************************************************************/
-//void rmsValueAddSample_Float(rms_float_t * inputStruct, const float * sample)
 void rmsValueAddSample_Float(rms_float_t * inputStruct, float sample)
 {
     /* square value and accumulate */
@@ -264,7 +265,6 @@ void rmsValueAddSample_Float(rms_float_t * inputStruct, float sample)
  *
  *  - RETURN:   N/A (result returned inside the struct)
  ******************************************************************************/
-//void rmsValueAddSample_Int16(rms_int16_t * inputStruct, const int16_t * sample)
 void rmsValueAddSample_Int16(rms_int16_t * inputStruct, int16_t sample)
 {
     int32_t sample_temp;
@@ -440,8 +440,8 @@ void sineWaveGen_Array_Float(float * outputArray, float freq, float phase_rad,
 
     for (counter = 0; counter < points; counter++)
     {
-        x += increment;
         outputArray[counter] += (amplitude * sinf(x + phase_rad)) + V_offset;
+        x += increment;
     }
 }
 

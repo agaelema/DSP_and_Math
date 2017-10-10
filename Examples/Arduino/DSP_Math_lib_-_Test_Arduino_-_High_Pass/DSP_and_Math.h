@@ -4,7 +4,7 @@
  *  - some functions using fixed notation to (optimized)
  *
  *  author: Haroldo Amaral - agaelema@globo.com
- *  v0.4.1 - 2017/09/20
+ *  v0.4.3 - 2017/10/09
  ******************************************************************************
  *  log:
  *    v0.1      . Initial version
@@ -28,6 +28,8 @@
  *              + add Goertzel functions (array and sample-by-sample)
  *    v0.4.1    . improve efficiency on "goertzelArrayInt16_Fixed64()"
  *              - remove old remain functions
+ *    v0.4.2    . fix "sineWaveGen_GetSample()" function - phase error
+ *    v0.4.3    . organized defines
  ******************************************************************************/
 
 #ifndef _DSP_AND_MATH_H_
@@ -40,8 +42,31 @@ extern "C"
 {
 #endif
 
+
 /******************************************************************************
- *                              DEFINES / ENUM
+ *                              DEFINES
+ ******************************************************************************/
+
+/* RMS VALUE - ARRAY VERSION */
+//#define     RMS_ARRAY_STD         // rms using standard lib (math.h) - more accurate
+#define     RMS_ARRAY_OPTIMIZED   // using integer square root algorithm - more efficient
+
+/* RMS VALUE - SAMPLE BY SAMPLE VERSION */
+//#define     RMS_SAMPLE_STD         // rms using standard lib (math.h) - more accurate
+#define     RMS_SAMPLE_OPTIMIZED   // using integer square root algorithm - more efficient
+
+
+#define     PI                  3.141592653589793f
+#define     TWO_PI              6.283185307179586f
+#define     SQRT_OF_2           1.414213562373095f
+#define     SQRT_OF_3           1.732050807568877f
+
+
+
+
+
+/******************************************************************************
+ *                              ENUM
  ******************************************************************************/
 
 enum iir_clean
@@ -304,18 +329,12 @@ int32_t sqrt_Int32(int32_t x);
 /******************************************************************************
  *                  RMS VALUE - ARRAY VERSION
  ******************************************************************************/
-//#define     RMS_ARRAY_STD         // rms using standard lib (math.h) - more accurate
-#define     RMS_ARRAY_OPTIMIZED   // using integer square root algorithm - more efficient
-
 float rmsValueArray_Float_StdMath(const float * arrayIn, uint_fast16_t size, float dcLevel);
 float rmsValueArray_Int16_StdMath(const int16_t * arrayIn, uint_fast16_t size, int16_t dcLevel);
 
 /******************************************************************************
  *                  RMS VALUE - SAMPLE BY SAMPLE VERSION
  ******************************************************************************/
-//#define     RMS_SAMPLE_STD         // rms using standard lib (math.h) - more accurate
-#define     RMS_SAMPLE_OPTIMIZED   // using integer square root algorithm - more efficient
-
 void rmsValueAddSample_Float(rms_float_t * inputStruct, float sample);
 void rmsValueAddSample_Int16(rms_int16_t * inputStruct, int16_t sample);
 
@@ -329,9 +348,6 @@ void rmsValueCalcRmsStdMath_Int16(rms_int16_t * inputStruct);
 /******************************************************************************
  *                  SINE WAVE GENERATOR FUNCTIONS
  ******************************************************************************/
-#define     PI                  3.141592653589793f
-#define     TWO_PI              6.283185307179586f
-
 void sineWaveGen_Array_Float(float * outputArray, float freq, float phase_rad, float amplitude, float V_offset, uint_fast16_t points, uint_fast8_t doClean);
 
 void sineWaveGen_bySample_Init(sine_wave_parameters *inputParameters, float freq, float phase, float amp, float v_off, uint_fast16_t points, uint_fast8_t doClean);
