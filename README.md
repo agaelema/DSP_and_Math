@@ -6,6 +6,17 @@ To enable multiple instances (similar to C++) various functions receive and retu
 
 To be microcontroller friendly, some functions were implemented entirely in fixed point, other functions use the main calculus in fixed math and return the result in float, allowing a trade off between accuracy and efficiency.
 
+#### Plot Examples
+
+* High pass Filter
+
+![alt text](https://github.com/agaelema/DSP_and_Math/blob/master/highpass_plot.jpg?raw=true "Logo Title Text 1")
+
+* Low pass Filter
+
+![alt text](https://github.com/agaelema/DSP_and_Math/blob/master/lowpass_plot.jpg?raw=true "Logo Title Text 1")
+
+
 ## Implemented Math Functions
 
 #### Square Root (SQRT)
