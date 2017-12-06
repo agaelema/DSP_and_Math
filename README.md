@@ -198,3 +198,8 @@ void goertzelSampleInit_Fixed64(goertzel_sample_fixed64_t* inputStruct, float bi
 void goertzelSampleAddInt16_Fixed64(goertzel_sample_fixed64_t * inputStruct, int16_t sample);
 void goertzelSampleCalc_Fixed64(goertzel_sample_fixed64_t * inputStruct);
 ```
+
+___
+### DISCLAIMER
+
+This software is provided 'as is' with no explicit or implied warranties in respect of its properties, including, but not limited to, correctness and/or fitness for purpose.
