@@ -3,7 +3,7 @@
  *  - some functions using float point and standard math.h lib
  *  - some functions using fixed notation to (optimized)
  *
- *  author: Haroldo Amaral - agaelema@globo.com
+ *  author: Haroldo Amaral - agaelema@gmail.com
  *  v0.4.3 - 2017/10/09
  ******************************************************************************
  *  log:
@@ -302,7 +302,7 @@ struct goertzel_struct_sample_fixed64_
     int64_t cr_fix;
     int64_t ci_fix;
     int64_t coeff_fix;
-    int64_t s_fix;    // usar variável na função
+    int64_t s_fix;    // usar variavel na funcao
     int64_t sprev_fix;
     int64_t sprev_fix2;
     int64_t real_fix;
