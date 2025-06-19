@@ -3,7 +3,7 @@
  *  - some functions using float point and standard math.h lib
  *  - some functions using fixed notation to (optimized)
  *
- *  author: Haroldo Amaral - agaelema@globo.com
+ *  author: Haroldo Amaral - agaelema@gmail.com
  *  v0.4.3 - 2017/10/09
  ******************************************************************************
  *  log:
